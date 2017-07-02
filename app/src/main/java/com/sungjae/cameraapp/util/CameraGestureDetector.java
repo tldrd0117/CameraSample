@@ -20,7 +20,8 @@ public class CameraGestureDetector {
     public  int   allMoveDistance;
     private int   areaSize;
     private boolean actionPointerUp = false;
-    CameraGestureListener cameraGestureListener;
+    ZoomListener zoomListener;
+    FocusListener focusListener;
 
     public CameraGestureDetector(Context context, int minZoom, int maxZoom ) {
         this.maxZoom = maxZoom;
@@ -31,8 +32,12 @@ public class CameraGestureDetector {
         areaSize = (int)SizeUtil.getPxFromDp(100, context);
     }
 
-    public void setCameraGestureListener(CameraGestureListener cameraGestureListener) {
-        this.cameraGestureListener = cameraGestureListener;
+    public void setZoomListener(CameraGestureDetector.ZoomListener zoomListener) {
+        this.zoomListener = zoomListener;
+    }
+
+    public void setFocusListener(FocusListener focusListener) {
+        this.focusListener = focusListener;
     }
 
     public boolean onTouchEvent(final MotionEvent event, int surfaceViewWidth, int surfaceViewHeight ) {
@@ -56,7 +61,9 @@ public class CameraGestureDetector {
                         global_y[i] = (int)( event.getY( i ) );
                     }
                     firstDistance = (int)Math.sqrt( Math.pow( global_x[0] - global_x[1], 2 ) + Math.pow( global_y[0] - global_y[1], 2 ) );
-                    cameraGestureListener.onZoomStart();
+                    if( zoomListener != null ) {
+                        zoomListener.onZoomStart();
+                    }
                 }
                 break;
 
@@ -77,7 +84,9 @@ public class CameraGestureDetector {
                             allMoveDistance = distanceComp * maxZoom;
                         }
                         float zoom = (float)allMoveDistance / distanceComp;
-                        cameraGestureListener.zoom( (int)( zoom ) );
+                        if( zoomListener != null) {
+                            zoomListener.onZoom((int) (zoom));
+                        }
 
                     }
                     else if ( comp < 0 && firstDistance != 0 ) {
@@ -86,21 +95,26 @@ public class CameraGestureDetector {
                             allMoveDistance = 0;
                         }
                         float zoom = (float)allMoveDistance / distanceComp;
-                        cameraGestureListener.zoom( (int)( zoom ) );
+                        if( zoomListener != null ) {
+                            zoomListener.onZoom((int) (zoom));
+                        }
 
                     }
                 }
                 break;
             case MotionEvent.ACTION_POINTER_UP:
                 actionPointerUp = true;
-                cameraGestureListener.onZoomFinish();
+                if( zoomListener != null ) {
+                    zoomListener.onZoomFinish();
+                }
                 //                cameraObject.focusArea(CameraPreview.this.getWidth() / 2, CameraPreview.this.getHeight() / 2,
                 //                        getContext(), CameraPreview.this.getWidth(), CameraPreview.this.getHeight(), 0);
                 return false;
             case MotionEvent.ACTION_UP:
                 if ( !actionPointerUp ) {
-
-                    cameraGestureListener.focusArea( event.getX(), event.getY(), surfaceViewWidth, surfaceViewHeight, areaSize );
+                    if( focusListener != null ) {
+                        focusListener.focusArea(event.getX(), event.getY(), surfaceViewWidth, surfaceViewHeight, areaSize);
+                    }
                     //                    cameraObject.focusArea(event.getX(), event.getY(), getContext(),
                     //                            CameraPreview.this.getWidth(), CameraPreview.this.getHeight(), 0);
                 }
@@ -112,13 +126,14 @@ public class CameraGestureDetector {
         return true;
     }
 
-    public interface CameraGestureListener {
+
+    public interface ZoomListener {
         void onZoomStart();
-
         void onZoomFinish();
+        void onZoom(int zoomValue);
+    }
 
-        void zoom(int zoomValue);
-
+    public interface FocusListener {
         void focusArea(float x, float y, int surfaceViewWidth, int surfaceViewHeight, int areaSize );
     }
 }

@@ -1,9 +1,12 @@
 package com.sungjae.cameraapp;
 
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.OrientationEventListener;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -14,6 +17,7 @@ import android.widget.ImageView;
 
 import com.sungjae.cameraapp.anim.CameraAnimFactory;
 import com.sungjae.cameraapp.base.BaseCameraFragment;
+import com.sungjae.cameraapp.util.CameraGestureDetector;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -41,6 +45,8 @@ public class CameraFragment extends BaseCameraFragment implements CameraMVP.View
     SurfaceView surfaceView;
 
     CameraMVP.Presenter presenter;
+    CameraGestureDetector cameraGestureDetector;
+    OrientationEventListener orientationEventListener;
 
     @Nullable
     @Override
@@ -72,6 +78,9 @@ public class CameraFragment extends BaseCameraFragment implements CameraMVP.View
     public void onPause() {
         super.onPause();
         presenter.releaseCamera();
+        if(orientationEventListener != null) {
+            orientationEventListener.disable();
+        }
     }
 
     public void setupViews(){
@@ -84,6 +93,15 @@ public class CameraFragment extends BaseCameraFragment implements CameraMVP.View
         rootLayout.addView(surfaceView, 0, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         presenter.setView(CameraFragment.this);
         presenter.setupPreview();
+        cameraGestureDetector = new CameraGestureDetector( getActivity(), 0 ,0 );
+
+        cameraGestureDetector.setFocusListener(new CameraGestureDetector.FocusListener() {
+            @Override
+            public void focusArea(float x, float y, int surfaceViewWidth, int surfaceViewHeight, int areaSize) {
+                presenter.focusArea( x, y, surfaceViewWidth, surfaceViewHeight, areaSize);
+            }
+        });
+
         captureBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -93,9 +111,16 @@ public class CameraFragment extends BaseCameraFragment implements CameraMVP.View
         surfaceView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                return presenter.focusCamera(event, surfaceView.getWidth(), surfaceView.getHeight());
+                return cameraGestureDetector.onTouchEvent(event, surfaceView.getWidth(), surfaceView.getHeight());
             }
         });
+        orientationEventListener = new OrientationEventListener( getContext(), SensorManager.SENSOR_DELAY_UI ) {
+            @Override
+            public void onOrientationChanged( int orientation ) {
+                Log.d("orientation", "orientation : " + orientation);
+            }
+        };
+        orientationEventListener.enable();
     }
 
     @Override

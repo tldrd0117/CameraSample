@@ -37,23 +37,6 @@ public class BaseCameraFragment extends Fragment {
         }
     }
 
-    protected void checkWritePermission(Completable completable) {
-        String[] permissionArray = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE};
-        List<String> deniedList = new ArrayList<>();
-        for (String permission : permissionArray) {
-            if (PackageManager.PERMISSION_DENIED == ContextCompat.checkSelfPermission(getActivity(), permission)) {
-                deniedList.add(permission);
-            }
-        }
-        if (deniedList.size() == 0) {
-            completable.subscribe();
-            return;
-        }
-        completableList.add(completable);
-        if (completableList.size() == 1) {
-            requestPermissions(deniedList.toArray(new String[deniedList.size()]), REQUEST_CODE_PERMISSION);
-        }
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

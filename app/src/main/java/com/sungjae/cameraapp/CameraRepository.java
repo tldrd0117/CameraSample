@@ -14,11 +14,6 @@ import io.reactivex.Observable;
  */
 
 public interface CameraRepository {
-    int getCameraId(CameraFaceInfo cameraFaceInfo);
-    Camera getCameraInstance(  );
-    void switchCamera( );
-    void releaseCamera( );
     Observable<String> imageSave(byte[] imageBytes);
-    CameraGestureDetector getCameraGestureDetector(CameraGestureDetector.CameraGestureListener listener );
 
 }

@@ -6,6 +6,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 
 import com.sungjae.cameraapp.info.CameraFaceInfo;
+import com.sungjae.cameraapp.info.CameraFocusResult;
 import com.sungjae.cameraapp.util.CameraGestureDetector;
 
 import io.reactivex.Completable;
@@ -31,7 +32,8 @@ public interface CameraMVP {
         void setupPreview();
         void takePicture();
         void releaseCamera();
-        boolean focusCamera(MotionEvent event, int surfaceViewWidth, int surfaceViewHeight);
+        void focusArea(float x, float y, int surfaceViewWidth, int surfaceViewHeight, int areaSize);
+
 
     }
 
@@ -39,8 +41,10 @@ public interface CameraMVP {
         Camera getCameraInstance( );
         void switchCamera();
         void releaseCamera();
-        CameraGestureDetector getCameraGestureDetector(CameraGestureDetector.CameraGestureListener listener);
         Observable<String> imageSave(byte[] imageBytes);
+        void surfaceChanged(SurfaceHolder holder, int format, int width, int height);
+        void surfaceCreated(SurfaceHolder holder);
+        Observable<Object> focusArea(float x, float y, int surfaceViewWidth, int surfaceViewHeight, int areaSize);
 
     }
 }
